@@ -1,54 +1,1297 @@
-<!-- SOUS-BLOC C : MOTEUR D'INJECTION MODULABLE (DÈS JANVIER 2027) -->
-<div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-3">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-    <div>
-      <span class="text-xs font-semibold text-zinc-300 block">Module d'Injection Personnalisable</span>
-      <span class="text-[10px] text-zinc-500">Ajuste les montants réels avant de valider l'apport</span>
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projet Exodus | Command Center</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d',
+            },
+            surface: {
+              800: '#18181b',
+              900: '#09090b',
+              950: '#030712',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .progress-bar { transition: width 0.4s ease-in-out; }
+    .arabic-text { font-family: "Traditional Arabic", "Amiri", "Scheherazade New", serif; font-size: 1.25rem; line-height: 2.2rem; }
+  </style>
+</head>
+<body class="bg-surface-950 text-zinc-100 min-h-screen flex flex-col">
+
+  <!-- TOPBAR -->
+  <header class="border-b border-zinc-800 bg-surface-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
+        Ω
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+          PROJET EXODUS <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">OPERATIONAL</span>
+        </h1>
+        <p class="text-xs text-zinc-400">Copilote Stratégique & Tableau de Bord d'Exécution</p>
+      </div>
     </div>
+    
     <div class="flex items-center gap-2">
-      <span class="text-xs font-mono text-zinc-400">Total : <strong class="text-emerald-400 font-bold" id="dca-total-preview">1 500 €</strong></span>
-      <button onclick="injectCustomDCA()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-lg shadow-emerald-950/50">
-        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Injecter
+      <button onclick="exportData()" title="Exporter mes données (JSON)" class="text-xs text-zinc-400 hover:text-emerald-400 transition flex items-center gap-1 border border-zinc-800 px-2.5 py-1.5 rounded-lg bg-zinc-900">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Export</span>
+      </button>
+      <label title="Importer mes données (JSON)" class="cursor-pointer text-xs text-zinc-400 hover:text-sky-400 transition flex items-center gap-1 border border-zinc-800 px-2.5 py-1.5 rounded-lg bg-zinc-900">
+        <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Import</span>
+        <input type="file" id="import-input" accept=".json" class="hidden" onchange="importData(event)" />
+      </label>
+      <button onclick="toggleApiKeyModal()" title="Paramètres API Gemini" class="text-xs text-zinc-400 hover:text-white transition flex items-center gap-1 border border-zinc-800 px-2.5 py-1.5 rounded-lg bg-zinc-900">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Clé</span>
+      </button>
+      <button onclick="resetData()" title="Réinitialiser" class="text-xs text-zinc-400 hover:text-rose-400 transition flex items-center gap-1 border border-zinc-800 px-2 py-1.5 rounded-lg bg-zinc-900">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
       </button>
     </div>
+  </header>
+
+  <!-- BANDEAU CITATION -->
+  <section class="bg-gradient-to-r from-zinc-900 via-surface-900 to-zinc-900 border-b border-zinc-800/80 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-start gap-3">
+      <i data-lucide="flame" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+      <div class="flex-1">
+        <p id="daily-quote" class="text-sm font-medium text-zinc-200 italic leading-relaxed">
+          « La discipline est le pont entre tes objectifs et tes accomplissements. »
+        </p>
+        <span class="text-[10px] text-zinc-500 uppercase tracking-widest font-mono block mt-1">Directives d'Exécution Quotidienne</span>
+      </div>
+      <button onclick="fetchDailyQuote(true)" title="Générer une nouvelle citation" class="text-zinc-500 hover:text-amber-400 p-1">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- KPI HERO BAR -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="bg-surface-900 border border-zinc-800/80 p-4 rounded-xl">
+        <div class="flex justify-between items-center text-zinc-400 text-xs font-medium mb-1">
+          <span>PILOTE</span>
+          <i data-lucide="car" class="w-4 h-4 text-sky-400"></i>
+        </div>
+        <div class="text-2xl font-bold tracking-tight text-white" id="kpi-pilote">4 / 30 h</div>
+        <div class="text-xs text-sky-400 mt-1 font-mono" id="kpi-pilote-pct">13.3% complété</div>
+      </div>
+
+      <div class="bg-surface-900 border border-zinc-800/80 p-4 rounded-xl">
+        <div class="flex justify-between items-center text-zinc-400 text-xs font-medium mb-1">
+          <span>SENTINELLE (CASH 12K)</span>
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold tracking-tight text-white" id="kpi-cash">0 € / 12k €</div>
+        <div class="text-xs text-emerald-400 mt-1 font-mono" id="kpi-cash-target-month">Échéance : Calcul...</div>
+      </div>
+
+      <div class="bg-surface-900 border border-zinc-800/80 p-4 rounded-xl">
+        <div class="flex justify-between items-center text-zinc-400 text-xs font-medium mb-1">
+          <span>CORPS & COMBAT</span>
+          <i data-lucide="dumbbell" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div class="text-2xl font-bold tracking-tight text-white" id="kpi-workout">0 / 5 SÉANCES</div>
+        <div class="text-xs text-amber-400 mt-1 font-mono" id="kpi-streak">Série active : 0 sem.</div>
+      </div>
+
+      <div class="bg-surface-900 border border-zinc-800/80 p-4 rounded-xl">
+        <div class="flex justify-between items-center text-zinc-400 text-xs font-medium mb-1">
+          <span>TAWAKUL</span>
+          <i data-lucide="moon" class="w-4 h-4 text-purple-400"></i>
+        </div>
+        <div class="text-xl font-bold tracking-tight text-white" id="kpi-tawakul">PHASE 1</div>
+        <div class="text-xs text-purple-400 mt-1 font-mono" id="kpi-next-prayer">Prochaine prière : ...</div>
+      </div>
+    </section>
+
+    <!-- ACTIONS PRIORITAIRES DE LA SEMAINE -->
+    <section class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+          <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Actions Prioritaires de la Semaine
+        </h2>
+        <span class="text-xs text-zinc-500 font-mono" id="actions-counter">0/0 terminées</span>
+      </div>
+
+      <form onsubmit="addAction(event)" class="flex gap-2">
+        <input type="text" id="new-action-input" placeholder="Ajouter un nouvel objectif hebdomadaire..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none text-zinc-200" required />
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> Ajouter
+        </button>
+      </form>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" id="weekly-actions"></div>
+    </section>
+
+    <!-- GRILLE DES 4 PILIERS INTERACTIFS -->
+    <section class="grid md:grid-cols-2 gap-6">
+
+      <!-- PILIER 1 : PILOTE -->
+      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-sky-500/10 text-sky-400"><i data-lucide="compass" class="w-5 h-5"></i></div>
+            <h3 class="font-bold text-white">1. Pilier Pilote (Mobilité & Permis)</h3>
+          </div>
+          <span class="text-xs font-mono text-zinc-400" id="hours-display">4h / 30h</span>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs text-zinc-400 mb-1">
+            <span>Progression Heures de Conduite</span>
+            <span id="hours-pct-text">13.3%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+            <div id="hours-bar" class="bg-sky-500 h-2.5 rounded-full progress-bar" style="width: 13.3%"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1">Heures effectuées</label>
+            <input type="number" id="input-heures" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-sky-500 outline-none" min="0" max="60" onchange="updatePilote()" />
+          </div>
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1">Statut Code de la Route</label>
+            <select id="select-code" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-sky-500 outline-none text-zinc-200" onchange="updatePilote()">
+              <option value="En cours">En cours (Sprint)</option>
+              <option value="Date fixée">Date fixée</option>
+              <option value="Validé">Validé ✓</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800/80 rounded-lg p-3 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-zinc-400 font-semibold">Date butoir Examen / Permis</span>
+            <input type="date" id="input-target-date" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:border-sky-500 outline-none font-mono" onchange="updatePilote()" />
+          </div>
+          <div class="flex justify-between items-center pt-1 border-t border-zinc-850">
+            <span id="target-countdown" class="text-sky-400 font-mono font-medium">J-XX restants</span>
+            <span id="target-pace" class="text-zinc-400 font-mono">Rythme : 0h/semaine</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PILIER 2 : SENTINELLE CLARIFIÉ & STRUCTURÉ -->
+      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-5">
+        
+        <!-- En-tête Pilier -->
+        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="shield" class="w-5 h-5"></i></div>
+            <div>
+              <h3 class="font-bold text-white text-sm">2. Pilier Sentinelle (Bouclier Financier)</h3>
+              <p class="text-[11px] text-zinc-400">Patrimoine total consolidé & stratégie d'indépendance</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-bold font-mono text-emerald-400" id="total-patrimoine-display">0 €</span>
+            <span class="text-[10px] text-zinc-500 block">Patrimoine Net</span>
+          </div>
+        </div>
+
+        <!-- SOUS-BLOC A : ÉTAT RÉEL ACTUEL (FIN 2026) -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span> Soldes Réels Disponibles (2026)
+            </span>
+            <span class="text-[10px] font-mono text-zinc-400" id="total-2026-detail">0 € Cash</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1">Cash Disponible (€)</label>
+              <input type="number" id="input-cash-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-sky-500 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1">PEA Investi (€)</label>
+              <input type="number" id="input-pea-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-emerald-500 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1">Portefeuille Crypto (€)</label>
+              <input type="number" id="input-crypto-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-zinc-900 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-zinc-400">Dépenses/mois :</span>
+              <input type="number" id="input-monthly-expenses" class="w-20 bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-xs text-zinc-200 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-zinc-400">Runaway : </span>
+              <span id="runaway-display" class="font-mono text-sky-400 font-bold">0 mois</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOUS-BLOC B : BOUCLIER DE SÉCURITÉ (COUSSIN CASH 12K €) -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Bouclier d'Urgence (Coussin Cash)
+            </span>
+            <span id="cash-pct-text" class="font-mono text-emerald-400 font-bold">0% (0 / 12 000 €)</span>
+          </div>
+          
+          <div class="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden">
+            <div id="cash-bar" class="bg-emerald-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+          </div>
+
+          <div class="flex justify-between items-center text-[11px] text-zinc-400 pt-1">
+            <span>Projection 12 000 € scellé :</span>
+            <span id="sentinelle-projection" class="font-mono text-emerald-400 font-bold">Calcul...</span>
+          </div>
+        </div>
+
+        <!-- SOUS-BLOC C : MOTEUR DCA ACTIF DÈS JANVIER 2027 -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-xs font-semibold text-zinc-300 block">Moteur d'Injection DCA (Dès Janv. 2027)</span>
+              <span class="text-[10px] text-zinc-500">Cible : 1 500 € / mois (750 € Cash / 600 € PEA / 150 € Crypto)</span>
+            </div>
+            <button onclick="injectMonthlyDCA()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-lg shadow-emerald-950/50">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Injecter 1 500 €
+            </button>
+          </div>
+
+          <!-- Barre de répartition cible -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-mono">
+              <span class="text-sky-400">50% Cash (750€)</span>
+              <span class="text-emerald-400">40% PEA ETF (600€)</span>
+              <span class="text-amber-400">10% Crypto (150€)</span>
+            </div>
+            <div class="w-full h-1.5 flex rounded-full overflow-hidden bg-zinc-900">
+              <div class="bg-sky-500 w-1/2"></div>
+              <div class="bg-emerald-500 w-[40%]"></div>
+              <div class="bg-amber-500 w-[10%]"></div>
+            </div>
+          </div>
+
+          <!-- Journal des injections -->
+          <div class="border-t border-zinc-900 pt-2 space-y-1.5">
+            <div class="flex justify-between items-center text-[11px] text-zinc-400 font-semibold">
+              <span>Journal des Versements</span>
+              <span class="text-zinc-500 font-mono text-[10px]" id="dca-history-count">0 injection(s)</span>
+            </div>
+            <div id="dca-history-list" class="space-y-1 max-h-20 overflow-y-auto text-[11px] pr-1"></div>
+          </div>
+        </div>
+
+        <!-- SOUS-BLOC D : GRAPHIQUE INTERACTIF DE CAPITALISATION -->
+        <div class="bg-zinc-950/90 border border-zinc-800 rounded-xl p-3.5 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i> Trajectoire & Intérêts Composés
+              </span>
+              <span class="text-[10px] text-zinc-400">Projection sur 36 mois avec réinvestissement passif</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <button onclick="setChartMode('all')" id="chart-btn-all" class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono">Global</button>
+              <button onclick="setChartMode('cash')" id="chart-btn-cash" class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono">Cash</button>
+              <button onclick="setChartMode('invest')" id="chart-btn-invest" class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono">PEA/Crypto</button>
+            </div>
+          </div>
+
+          <div class="w-full h-48 sm:h-56 relative">
+            <canvas id="patrimoineChart"></canvas>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-900 text-center font-mono">
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+12</span>
+              <span id="proj-12" class="text-xs text-white font-bold">0 €</span>
+            </div>
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+24</span>
+              <span id="proj-24" class="text-xs text-white font-bold">0 €</span>
+            </div>
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+36</span>
+              <span id="proj-36" class="text-xs text-emerald-400 font-bold">0 €</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PILIER 3 : CORPS & COMBAT -->
+      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="flame" class="w-5 h-5"></i></div>
+            <h3 class="font-bold text-white">3. Corps & Combat</h3>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded bg-amber-950/60 text-amber-400 border border-amber-800/60">Spartacus ➔ Raging Bull</span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex justify-between items-center text-xs text-zinc-400">
+            <span id="current-week-label">Semaine en cours (Objectif : 4-5)</span>
+            <button onclick="archiveCurrentWeek()" class="text-[11px] text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 border border-amber-900/60 bg-amber-950/30 px-2 py-0.5 rounded">
+              <i data-lucide="archive" class="w-3 h-3"></i> Clôturer & Archiver
+            </button>
+          </div>
+
+          <div class="flex gap-2">
+            <select id="workout-type-select" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 outline-none">
+              <option value="Force / Muscu">Force / Musculation</option>
+              <option value="Cardio / Corde">Cardio / Corde à sauter</option>
+              <option value="Explosivité">Explosivité / Vitesse</option>
+              <option value="Boxe Anglaise">Boxe Anglaise (Raging Bull)</option>
+            </select>
+            <button onclick="logWorkoutSession()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Valider Séance
+            </button>
+          </div>
+
+          <div id="current-week-workouts" class="flex flex-wrap gap-1.5 min-h-[30px] p-2 bg-zinc-950 rounded-lg border border-zinc-850"></div>
+        </div>
+
+        <div class="border-t border-zinc-800/80 pt-3 space-y-2">
+          <div class="flex justify-between items-center text-xs text-zinc-400">
+            <span class="font-semibold">Historique Hebdomadaire</span>
+            <span class="text-amber-400 font-mono text-[11px]" id="streak-display">Série : 0 semaine(s) à 4+</span>
+          </div>
+          <div id="workout-history" class="space-y-1.5 max-h-24 overflow-y-auto text-xs pr-1"></div>
+        </div>
+      </div>
+
+      <!-- PILIER 4 : TAWAKUL -->
+      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="heart-handshake" class="w-5 h-5"></i></div>
+            <h3 class="font-bold text-white">4. Pilier Tawakul (Spiritualité)</h3>
+          </div>
+          <span class="text-xs font-mono text-zinc-400">Cap : Juin 2027</span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-purple-300 font-semibold flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Horaires de Prière du Jour
+              </span>
+              <span id="prayer-city-label" class="text-[10px] text-zinc-500 font-mono">Chargement...</span>
+            </div>
+            <div class="grid grid-cols-5 gap-1 text-center font-mono text-xs" id="prayer-times-grid">
+              <div class="bg-zinc-900 p-1.5 rounded"><span class="text-[10px] text-zinc-500 block">Fajr</span><span id="pt-fajr">--:--</span></div>
+              <div class="bg-zinc-900 p-1.5 rounded"><span class="text-[10px] text-zinc-500 block">Dhuhr</span><span id="pt-dhuhr">--:--</span></div>
+              <div class="bg-zinc-900 p-1.5 rounded"><span class="text-[10px] text-zinc-500 block">Asr</span><span id="pt-asr">--:--</span></div>
+              <div class="bg-zinc-900 p-1.5 rounded"><span class="text-[10px] text-zinc-500 block">Maghrib</span><span id="pt-maghrib">--:--</span></div>
+              <div class="bg-zinc-900 p-1.5 rounded"><span class="text-[10px] text-zinc-500 block">Isha</span><span id="pt-isha">--:--</span></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1">Phase Actuelle</label>
+            <select id="select-tawakul" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-purple-500 outline-none text-zinc-200" onchange="updateTawakul()">
+              <option value="Phase 1">Phase 1 : Gestes, Ablutions, Fatiha & Sourates courtes</option>
+              <option value="Phase 2">Phase 2 : 1 à 2 prières fixes / jour</option>
+              <option value="Phase 3">Phase 3 : 5 prières quotidiennes complètes</option>
+            </select>
+          </div>
+
+          <button onclick="togglePrayerGuideModal()" class="w-full py-2.5 px-3 bg-purple-950/40 border border-purple-800/60 hover:bg-purple-900/40 text-purple-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition">
+            <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+            Ouvrir le Guide de la Prière (Arabe, Phonétique & Traduction)
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MODAL GUIDE DE LA PRIÈRE -->
+  <div id="prayer-guide-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-surface-900 border border-zinc-800 max-w-4xl w-full rounded-2xl p-4 sm:p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto text-zinc-200">
+      
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-4 sticky top-0 bg-surface-900 z-10">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="book-open" class="w-5 h-5 text-purple-400"></i> Guide Complet d'Apprentissage & Récitations
+          </h3>
+          <p class="text-xs text-zinc-400">Arabe vocalisé, translittération phonétique et traduction mot à mot.</p>
+        </div>
+        <button onclick="togglePrayerGuideModal()" class="text-zinc-500 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 1. Tableau des 5 Prières -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-4 h-4"></i> 1. Les 5 Prières et leurs Unités (Rak'ats)
+        </h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-zinc-800 rounded-lg overflow-hidden">
+            <thead class="bg-zinc-950 text-zinc-400 uppercase font-mono text-[10px]">
+              <tr>
+                <th class="p-2.5 border-b border-zinc-800">Prière</th>
+                <th class="p-2.5 border-b border-zinc-800">Moment</th>
+                <th class="p-2.5 border-b border-zinc-800">Nombre de Rak'ats</th>
+                <th class="p-2.5 border-b border-zinc-800">Voix</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-850 font-mono text-zinc-300">
+              <tr class="hover:bg-zinc-950/50">
+                <td class="p-2.5 font-bold text-white">Fajr (Subh)</td>
+                <td class="p-2.5 text-zinc-400">Aube (avant lever du soleil)</td>
+                <td class="p-2.5 text-emerald-400 font-bold">2 Rak'ats</td>
+                <td class="p-2.5">À voix haute</td>
+              </tr>
+              <tr class="hover:bg-zinc-950/50">
+                <td class="p-2.5 font-bold text-white">Dhuhr</td>
+                <td class="p-2.5 text-zinc-400">Midi solaire</td>
+                <td class="p-2.5 text-emerald-400 font-bold">4 Rak'ats</td>
+                <td class="p-2.5 text-zinc-500">À voix basse</td>
+              </tr>
+              <tr class="hover:bg-zinc-950/50">
+                <td class="p-2.5 font-bold text-white">Asr</td>
+                <td class="p-2.5 text-zinc-400">Milieu d'après-midi</td>
+                <td class="p-2.5 text-emerald-400 font-bold">4 Rak'ats</td>
+                <td class="p-2.5 text-zinc-500">À voix basse</td>
+              </tr>
+              <tr class="hover:bg-zinc-950/50">
+                <td class="p-2.5 font-bold text-white">Maghrib</td>
+                <td class="p-2.5 text-zinc-400">Coucher du soleil</td>
+                <td class="p-2.5 text-emerald-400 font-bold">3 Rak'ats</td>
+                <td class="p-2.5">2 à voix haute, 1 à voix basse</td>
+              </tr>
+              <tr class="hover:bg-zinc-950/50">
+                <td class="p-2.5 font-bold text-white">Isha</td>
+                <td class="p-2.5 text-zinc-400">Nuit noire</td>
+                <td class="p-2.5 text-emerald-400 font-bold">4 Rak'ats</td>
+                <td class="p-2.5">2 à voix haute, 2 à voix basse</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. Formules Rituelles -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+          <i data-lucide="layers" class="w-4 h-4"></i> 2. Formules Rituelles durant la Rak'at
+        </h4>
+        <div class="space-y-2.5 text-xs">
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Takbir d'ouverture (Debout face à la Qibla)</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">اللَّهُ أَكْبَرُ</p>
+            <p class="font-mono text-purple-300">« Allâhu Akbar »</p>
+            <p class="text-zinc-400 text-[11px]">« Allah est le plus Grand. »</p>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Ruku' (Inclinaison - dos droit, mains sur les genoux)</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">سُبْحَانَ رَبِّيَ الْعَظِيمِ</p>
+            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-'Adhîm » <span class="text-zinc-500 font-sans">(3 fois)</span></p>
+            <p class="text-zinc-400 text-[11px]">« Gloire à mon Seigneur le Très Grand. »</p>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Redressement de l'inclinaison</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ — رَبَّنَا وَلَكَ الْحَمْدُ</p>
+            <p class="font-mono text-purple-300">« Sami'a-Llâhu liman hamidah » ➔ « Rabbanâ wa lakal-hamd »</p>
+            <p class="text-zinc-400 text-[11px]">« Allah écoute celui qui Le loue » ➔ « Ô notre Seigneur, à Toi la louange. »</p>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Sujud (Prosternation au sol)</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">سُبْحَانَ رَبِّيَ الأَعْلَى</p>
+            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-A'lâ » <span class="text-zinc-500 font-sans">(3 fois)</span></p>
+            <p class="text-zinc-400 text-[11px]">« Gloire à mon Seigneur le Très-Haut. »</p>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Assise entre les prosternations</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">رَبِّ اغْفِرْ لِي ، رَبِّ اغْفِرْ لِي</p>
+            <p class="font-mono text-purple-300">« Rabbi-ghfir lî, Rabbi-ghfir lî »</p>
+            <p class="text-zinc-400 text-[11px]">« Seigneur pardonne-moi, Seigneur pardonne-moi. »</p>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-2">
+            <span class="font-bold text-white">Tachahhoud (Assis à la 2e unité et à la fin)</span>
+            <p class="text-right text-sm leading-relaxed text-emerald-400 font-arabic">
+              التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ
+            </p>
+            <p class="font-mono text-purple-300 text-[11px] leading-relaxed">
+              « At-tahiyyâtu lillâhi was-salawâtu wat-tayyibât. As-salâmu 'alayka ayyuhan-nabiyyu wa rahmatu-Llâhi wa barakâtuh. As-salâmu 'alaynâ wa 'alâ 'ibâdi-Llâhis-sâlihîn. Ash-hadu allâ ilâha illâ-Llâh, wa ash-hadu anna Muhammadan 'abduhû wa rasûluh. »
+            </p>
+            <div class="border-t border-zinc-850 pt-2 mt-2 space-y-1">
+              <span class="text-purple-300 font-bold block text-[11px]">Salât Ibrâhîmiyyah (Dernière unité) :</span>
+              <p class="text-right text-sm leading-relaxed text-emerald-400 font-arabic">
+                اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ
+              </p>
+              <p class="font-mono text-purple-300 text-[11px] leading-relaxed">
+                « Allâhumma salli 'alâ Muhammadin wa 'alâ âli Muhammad, kamâ sallayta 'alâ Ibrâhîma wa 'alâ âli Ibrâhîm, innaka Hamîdun Majîd. Allâhumma bârik 'alâ Muhammadin wa 'alâ âli Muhammad, kamâ bârakta 'alâ Ibrâhîma wa 'alâ âli Ibrâhîm, innaka Hamîdun Majîd. »
+              </p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
+            <span class="font-bold text-white">Salutations finales (Taslîm)</span>
+            <p class="text-right text-base text-emerald-400 font-arabic">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ</p>
+            <p class="font-mono text-purple-300">« As-salâmu 'alaykum wa rahmatu-Llâh »</p>
+            <p class="text-zinc-400 text-[11px]">« Que la paix et la miséricorde d'Allah soient sur vous. »</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Récitation des Sourates -->
+      <div class="space-y-4">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+          <i data-lucide="bookmark" class="w-4 h-4"></i> 3. Les Sourates à Réciter
+        </h4>
+
+        <!-- AL-FATIHA -->
+        <div class="p-4 bg-zinc-950 border border-purple-900/60 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <div>
+              <h5 class="font-bold text-white text-sm">Sourate 1 : Al-Fatiha (سُورَةُ الفَاتِحَةِ)</h5>
+              <span class="text-[11px] text-zinc-400">L'Ouverture — Obligatoire à chaque unité</span>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-400 text-xs font-mono border border-purple-800">7 Versets</span>
+          </div>
+          <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Bismi-Llâhir-Rahmânir-Rahîm</p><p class="text-zinc-400 text-[11px]">Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Al-hamdu lillâhi Rabbil-'âlamîn</p><p class="text-zinc-400 text-[11px]">Louange à Allah, Seigneur de l'univers.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الرَّحْمَٰنِ الرَّحِيمِ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Ar-Rahmânir-Rahîm</p><p class="text-zinc-400 text-[11px]">Le Tout Miséricordieux, le Très Miséricordieux.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مَالِكِ يَوْمِ الدِّينِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Mâliki yawmid-dîn</p><p class="text-zinc-400 text-[11px]">Maître du Jour du Jugement.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Iyyâka na'budu wa iyyâka nasta'în</p><p class="text-zinc-400 text-[11px]">C'est Toi [Seul] que nous adorons, et c'est Toi dont nous implorons le secours.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (٦)</p><p class="font-mono text-purple-300 mt-1">6. Ihdinas-sirâtal-mustaqîm</p><p class="text-zinc-400 text-[11px]">Guide-nous sur le droit chemin,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (٧)</p><p class="font-mono text-purple-300 mt-1">7. Sirâtal-ladhîna an'amta 'alayhim, ghayril-maghdûbi 'alayhim wa lad-dâllîn</p><p class="text-zinc-400 text-[11px]">Le chemin de ceux que Tu as comblés de faveurs... (Amîn)</p></div>
+          </div>
+        </div>
+
+        <!-- AL-IKHLAS -->
+        <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <h5 class="font-bold text-white text-sm">Sourate 112 : Al-Ikhlas (سُورَةُ الإِخْلَاصِ)</h5>
+            <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">4 Versets</span>
+          </div>
+          <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ هُوَ اللَّهُ أَحَدٌ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul Huwa-Llâhu Ahad</p><p class="text-zinc-400 text-[11px]">Dis : « Il est Allah, Unique. »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">اللَّهُ الصَّمَدُ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Allâhus-Samad</p><p class="text-zinc-400 text-[11px]">Allah, Le Seul à être imploré pour ce que nous désirons.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">لَمْ يَلِدْ وَلَمْ يُولَدْ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Lam yalid wa lam yûlad</p><p class="text-zinc-400 text-[11px]">Il n'a jamais engendré, n'a pas été engendré non plus.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Wa lam yakun lahû kufuwan ahad</p><p class="text-zinc-400 text-[11px]">Et nul n'est égal à Lui.</p></div>
+          </div>
+        </div>
+
+        <!-- AL-FALAQ -->
+        <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <h5 class="font-bold text-white text-sm">Sourate 113 : Al-Falaq (سُورَةُ الفَلَقِ)</h5>
+            <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">5 Versets</span>
+          </div>
+          <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbil-falaq</p><p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur de l'aube naissante, »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ مَا خَلَقَ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Min sharri mâ khalaq</p><p class="text-zinc-400 text-[11px]">contre le mal des êtres qu'Il a créés,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Wa min sharri ghâsiqin idhâ waqab</p><p class="text-zinc-400 text-[11px]">contre le mal de l'obscurité quand elle s'approfondit,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Wa min sharrin-naffâthâti fîl-'uqad</p><p class="text-zinc-400 text-[11px]">contre le mal de celles qui soufflent sur les nœuds,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Wa min sharri hâsidin idhâ hasad</p><p class="text-zinc-400 text-[11px]">et contre le mal de l'envieux quand il envie.</p></div>
+          </div>
+        </div>
+
+        <!-- AN-NAS -->
+        <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <h5 class="font-bold text-white text-sm">Sourate 114 : An-Nas (سُورَةُ النَّاسِ)</h5>
+            <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">6 Versets</span>
+          </div>
+          <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ النَّاسِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbin-nâs</p><p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur des hommes, »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مَلِكِ النَّاسِ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Malikin-nâs</p><p class="text-zinc-400 text-[11px]">Le Souverain des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">إِلَٰهِ النَّاسِ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Ilâhin-nâs</p><p class="text-zinc-400 text-[11px]">Dieu des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Min sharril-waswâsil-khannâs</p><p class="text-zinc-400 text-[11px]">contre le mal du mauvais conseiller furtif,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Al-ladhî yuwaswisu fî sudûrin-nâs</p><p class="text-zinc-400 text-[11px]">qui souffle le mal dans les poitrines des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِنَ الْجِنَّةِ وَالنَّاسِ (٦)</p><p class="font-mono text-purple-300 mt-1">6. Minal-jinnati wan-nâs</p><p class="text-zinc-400 text-[11px]">qu'il soit d'entre les djinns ou les hommes.</p></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-end pt-3 border-t border-zinc-800">
+        <button onclick="togglePrayerGuideModal()" class="px-5 py-2 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg">Fermer le Guide</button>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Champs éditables par actif -->
-  <div class="grid grid-cols-3 gap-2 pt-1">
-    <div>
-      <label class="text-[10px] text-sky-400 block mb-1 font-mono">Apport Cash (€)</label>
-      <input type="number" id="input-dca-cash" value="750" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-sky-500 outline-none font-mono" oninput="updateDcaPreview()" />
-    </div>
-    <div>
-      <label class="text-[10px] text-emerald-400 block mb-1 font-mono">Apport PEA (€)</label>
-      <input type="number" id="input-dca-pea" value="600" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-emerald-500 outline-none font-mono" oninput="updateDcaPreview()" />
-    </div>
-    <div>
-      <label class="text-[10px] text-amber-400 block mb-1 font-mono">Apport Crypto (€)</label>
-      <input type="number" id="input-dca-crypto" value="150" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 outline-none font-mono" oninput="updateDcaPreview()" />
-    </div>
-  </div>
-
-  <!-- Barre de répartition dynamique -->
-  <div class="space-y-1 pt-1">
-    <div class="flex justify-between text-[10px] font-mono text-zinc-400" id="dca-ratios-label">
-      <span class="text-sky-400">Cash 50%</span>
-      <span class="text-emerald-400">PEA 40%</span>
-      <span class="text-amber-400">Crypto 10%</span>
-    </div>
-    <div class="w-full h-1.5 flex rounded-full overflow-hidden bg-zinc-900">
-      <div id="bar-dca-cash" class="bg-sky-500" style="width: 50%"></div>
-      <div id="bar-dca-pea" class="bg-emerald-500" style="width: 40%"></div>
-      <div id="bar-dca-crypto" class="bg-amber-500" style="width: 10%"></div>
+  <!-- MODAL CLÉ API GEMINI -->
+  <div id="api-key-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-surface-900 border border-zinc-800 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i> Configuration Clé Gemini
+        </h3>
+        <button onclick="toggleApiKeyModal()" class="text-zinc-500 hover:text-zinc-300">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Renseigne ta clé API Gemini pour générer une directive quotidienne personnalisée. Stockage local (<code class="text-emerald-400">localStorage</code>).
+      </p>
+      <div>
+        <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none text-zinc-200" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="toggleApiKeyModal()" class="px-4 py-2 text-xs rounded-lg border border-zinc-800 text-zinc-400 hover:bg-zinc-800">Annuler</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">Sauvegarder</button>
+      </div>
     </div>
   </div>
 
-  <!-- Journal des injections -->
-  <div class="border-t border-zinc-900 pt-2 space-y-1.5">
-    <div class="flex justify-between items-center text-[11px] text-zinc-400 font-semibold">
-      <span>Journal des Versements</span>
-      <span class="text-zinc-500 font-mono text-[10px]" id="dca-history-count">0 injection(s)</span>
-    </div>
-    <div id="dca-history-list" class="space-y-1 max-h-24 overflow-y-auto text-[11px] pr-1"></div>
-  </div>
-</div>
+  <script>
+    const DEFAULT_DATA = {
+      heuresConduite: 4,
+      codeStatut: "En cours",
+      heuresTarget: 30,
+      targetDate: "2027-01-15",
+
+      // Pilier Sentinelle
+      cash2026: 0,
+      pea2026: 0,
+      crypto2026: 0,
+      monthlyExpenses: 1200,
+      coussinCashTarget: 12000,
+      dcaInjections: [],
+
+      currentWorkouts: [],
+      workoutHistory: [],
+
+      tawakulPhase: "Phase 1",
+
+      actions: [
+        { id: 1, text: "Verrouiller une date d'examen du Code sous 10-15 jours", done: false },
+        { id: 2, text: "Mémorisation active Fatiha + sourate courte & ablutions", done: false },
+        { id: 3, text: "Compléter 4 séances d'entraînement Q4 Spartacus", done: false }
+      ],
+
+      dailyQuote: {
+        text: "« La discipline est le pont entre tes objectifs et tes accomplissements. »",
+        date: ""
+      }
+    };
+
+    let appData = JSON.parse(localStorage.getItem('exodus_data')) || DEFAULT_DATA;
+    let geminiApiKey = localStorage.getItem('gemini_api_key') || "";
+    let myChart = null;
+    let chartMode = 'all'; // 'all', 'cash', 'invest'
+
+    function save() {
+      localStorage.setItem('exodus_data', JSON.stringify(appData));
+      render();
+    }
+
+    function resetData() {
+      if (confirm("Réinitialiser toutes les métriques aux valeurs initiales ?")) {
+        appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        save();
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `exodus-backup-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && typeof imported === 'object') {
+            appData = { ...DEFAULT_DATA, ...imported };
+            save();
+            alert("Données importées avec succès.");
+          }
+        } catch (err) {
+          alert("Erreur lors de la lecture du fichier JSON.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // PILOTE
+    function updatePilote() {
+      appData.heuresConduite = Number(document.getElementById('input-heures').value) || 0;
+      appData.codeStatut = document.getElementById('select-code').value;
+      appData.targetDate = document.getElementById('input-target-date').value;
+      save();
+    }
+
+    // SENTINELLE
+    function updateSentinelle() {
+      appData.cash2026 = Number(document.getElementById('input-cash-2026').value) || 0;
+      appData.pea2026 = Number(document.getElementById('input-pea-2026').value) || 0;
+      appData.crypto2026 = Number(document.getElementById('input-crypto-2026').value) || 0;
+      appData.monthlyExpenses = Number(document.getElementById('input-monthly-expenses').value) || 1200;
+      save();
+    }
+
+    function injectMonthlyDCA() {
+      const dcaCash = 750;
+      const dcaPea = 600;
+      const dcaCrypto = 150;
+      const now = new Date();
+      
+      appData.cash2026 = (appData.cash2026 || 0) + dcaCash;
+      appData.pea2026 = (appData.pea2026 || 0) + dcaPea;
+      appData.crypto2026 = (appData.crypto2026 || 0) + dcaCrypto;
+
+      appData.dcaInjections = appData.dcaInjections || [];
+      appData.dcaInjections.unshift({
+        id: Date.now(),
+        date: now.toLocaleDateString('fr-FR'),
+        amount: 1500,
+        cash: dcaCash,
+        pea: dcaPea,
+        crypto: dcaCrypto
+      });
+
+      save();
+    }
+
+    function deleteDcaInjection(id) {
+      const inj = (appData.dcaInjections || []).find(i => i.id === id);
+      if (inj) {
+        appData.cash2026 = Math.max(0, (appData.cash2026 || 0) - inj.cash);
+        appData.pea2026 = Math.max(0, (appData.pea2026 || 0) - inj.pea);
+        appData.crypto2026 = Math.max(0, (appData.crypto2026 || 0) - inj.crypto);
+        appData.dcaInjections = appData.dcaInjections.filter(i => i.id !== id);
+        save();
+      }
+    }
+
+    function setChartMode(mode) {
+      chartMode = mode;
+      ['all', 'cash', 'invest'].forEach(m => {
+        const btn = document.getElementById(`chart-btn-${m}`);
+        if (m === mode) {
+          btn.className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono";
+        } else {
+          btn.className = "px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono";
+        }
+      });
+      renderChart();
+    }
+
+    // CORPS & COMBAT
+    function logWorkoutSession() {
+      const type = document.getElementById('workout-type-select').value;
+      appData.currentWorkouts = appData.currentWorkouts || [];
+      appData.currentWorkouts.push({
+        id: Date.now(),
+        type: type,
+        date: new Date().toLocaleDateString('fr-FR')
+      });
+      save();
+    }
+
+    function removeCurrentWorkout(id) {
+      appData.currentWorkouts = appData.currentWorkouts.filter(w => w.id !== id);
+      save();
+    }
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const start = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - start) / 86400000) + 1) / 7);
+    }
+
+    function archiveCurrentWeek() {
+      const sessions = appData.currentWorkouts || [];
+      if (sessions.length === 0) {
+        alert("Enregistre au moins une séance avant d'archiver la semaine.");
+        return;
+      }
+      const now = new Date();
+      appData.workoutHistory.unshift({
+        id: Date.now(),
+        week: getWeekNumber(now),
+        year: now.getFullYear(),
+        count: sessions.length,
+        sessions: [...sessions]
+      });
+      appData.currentWorkouts = [];
+      save();
+    }
+
+    function deleteHistoryItem(id) {
+      appData.workoutHistory = appData.workoutHistory.filter(i => i.id !== id);
+      save();
+    }
+
+    // TAWAKUL
+    function updateTawakul() {
+      appData.tawakulPhase = document.getElementById('select-tawakul').value;
+      save();
+    }
+
+    async function fetchPrayerTimes() {
+      try {
+        const res = await fetch("https://api.aladhan.com/v1/timingsByCity?city=Paris&country=France&method=12");
+        const data = await res.json();
+        const timings = data?.data?.timings;
+        if (timings) {
+          document.getElementById('pt-fajr').textContent = timings.Fajr;
+          document.getElementById('pt-dhuhr').textContent = timings.Dhuhr;
+          document.getElementById('pt-asr').textContent = timings.Asr;
+          document.getElementById('pt-maghrib').textContent = timings.Maghrib;
+          document.getElementById('pt-isha').textContent = timings.Isha;
+          document.getElementById('prayer-city-label').textContent = "Paris / Région";
+
+          calculateNextPrayer(timings);
+        }
+      } catch (e) {
+        document.getElementById('prayer-city-label').textContent = "Mode local";
+      }
+    }
+
+    function calculateNextPrayer(timings) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const prayers = [
+        { name: "Fajr", time: timings.Fajr },
+        { name: "Dhuhr", time: timings.Dhuhr },
+        { name: "Asr", time: timings.Asr },
+        { name: "Maghrib", time: timings.Maghrib },
+        { name: "Isha", time: timings.Isha }
+      ];
+
+      for (let p of prayers) {
+        const [h, m] = p.time.split(':').map(Number);
+        if (h * 60 + m > currentMinutes) {
+          document.getElementById('kpi-next-prayer').textContent = `Prochaine : ${p.name} (${p.time})`;
+          return;
+        }
+      }
+      document.getElementById('kpi-next-prayer').textContent = `Prochaine : Fajr demain`;
+    }
+
+    // ACTIONS
+    function addAction(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-action-input');
+      const text = input.value.trim();
+      if (!text) return;
+      appData.actions.push({ id: Date.now(), text: text, done: false });
+      input.value = "";
+      save();
+    }
+
+    function toggleAction(id) {
+      const a = appData.actions.find(act => act.id === id);
+      if (a) { a.done = !a.done; save(); }
+    }
+
+    function deleteAction(id, e) {
+      e.stopPropagation();
+      appData.actions = appData.actions.filter(a => a.id !== id);
+      save();
+    }
+
+    // MODALS
+    function toggleApiKeyModal() {
+      const modal = document.getElementById('api-key-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('api-key-input').value = geminiApiKey;
+      }
+    }
+
+    function saveApiKey() {
+      geminiApiKey = document.getElementById('api-key-input').value.trim();
+      localStorage.setItem('gemini_api_key', geminiApiKey);
+      toggleApiKeyModal();
+      fetchDailyQuote(true);
+    }
+
+    function togglePrayerGuideModal() {
+      document.getElementById('prayer-guide-modal').classList.toggle('hidden');
+    }
+
+    // GEMINI QUOTE
+    async function fetchDailyQuote(force = false) {
+      const today = new Date().toISOString().split('T')[0];
+      if (!force && appData.dailyQuote && appData.dailyQuote.date === today && appData.dailyQuote.text) {
+        document.getElementById('daily-quote').textContent = appData.dailyQuote.text;
+        return;
+      }
+      if (!geminiApiKey) {
+        const fallbacks = [
+          "« La discipline est le choix entre ce que tu veux maintenant et ce que tu veux le plus. »",
+          "« Ce n'est pas parce que les choses sont difficiles que nous n'osons pas, c'est parce que nous n'osons pas qu'elles sont difficiles. » — Sénèque",
+          "« Reste focalisé sur ce qui est sous ton contrôle absolu. Le reste est bruit. »"
+        ];
+        document.getElementById('daily-quote').textContent = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        return;
+      }
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+        const prompt = "Donne-moi une maxime stoïque ou une phrase de combat ultra percutante (1-2 phrases courtes, en français, direct, sans blabla) pour un homme qui bâtit son indépendance, son permis, sa forme physique et sa prière. Réponds UNIQUEMENT avec la phrase.";
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json();
+        const q = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (q) {
+          appData.dailyQuote = { text: q, date: today };
+          save();
+        }
+      } catch (err) {
+        console.error("Gemini err:", err);
+      }
+    }
+
+    // RENDU DU GRAPHIQUE INTERACTIF DE CAPITALISATION
+    function renderChart() {
+      const ctx = document.getElementById('patrimoineChart');
+      if (!ctx) return;
+
+      const labels = [];
+      const cashData = [];
+      const peaData = [];
+      const cryptoData = [];
+      const totalData = [];
+
+      let currentCash = appData.cash2026 || 0;
+      let currentPea = appData.pea2026 || 0;
+      let currentCrypto = appData.crypto2026 || 0;
+
+      const rPea = 0.07 / 12; // 7% annuel
+      const rCrypto = 0.05 / 12; // 5% annuel
+
+      for (let m = 0; m <= 36; m++) {
+        labels.push(m === 0 ? "Départ" : `M+${m}`);
+        cashData.push(Math.round(currentCash));
+        peaData.push(Math.round(currentPea));
+        cryptoData.push(Math.round(currentCrypto));
+        totalData.push(Math.round(currentCash + currentPea + currentCrypto));
+
+        // Projections mensuelles
+        currentCash += 750;
+        currentPea = (currentPea * (1 + rPea)) + 600;
+        currentCrypto = (currentCrypto * (1 + rCrypto)) + 150;
+      }
+
+      // Mise à jour des cartes KPI de projection
+      document.getElementById('proj-12').textContent = `${totalData[12].toLocaleString('fr-FR')} €`;
+      document.getElementById('proj-24').textContent = `${totalData[24].toLocaleString('fr-FR')} €`;
+      document.getElementById('proj-36').textContent = `${totalData[36].toLocaleString('fr-FR')} €`;
+
+      let datasets = [];
+      if (chartMode === 'all') {
+        datasets = [
+          {
+            label: 'Patrimoine Total',
+            data: totalData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2
+          },
+          {
+            label: 'Coussin Cash',
+            data: cashData,
+            borderColor: '#38bdf8',
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.1,
+            borderWidth: 1.5
+          }
+        ];
+      } else if (chartMode === 'cash') {
+        datasets = [
+          {
+            label: 'Coussin Cash (Cible 12k€)',
+            data: cashData,
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            fill: true,
+            tension: 0.1,
+            borderWidth: 2
+          }
+        ];
+      } else if (chartMode === 'invest') {
+        datasets = [
+          {
+            label: 'PEA (ETF 7%)',
+            data: peaData,
+            borderColor: '#10b981',
+            fill: false,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Crypto (5%)',
+            data: cryptoData,
+            borderColor: '#f59e0b',
+            fill: false,
+            tension: 0.3,
+            borderWidth: 1.5
+          }
+        ];
+      }
+
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#a1a1aa',
+                font: { size: 10, family: 'monospace' }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#09090b',
+              titleColor: '#f4f4f5',
+              bodyColor: '#e4e4e7',
+              borderColor: '#27272a',
+              borderWidth: 1,
+              padding: 8,
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString('fr-FR')} €`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(39, 39, 42, 0.5)' },
+              ticks: {
+                color: '#71717a',
+                font: { size: 9 },
+                maxTicksLimit: 7
+              }
+            },
+            y: {
+              grid: { color: 'rgba(39, 39, 42, 0.5)' },
+              ticks: {
+                color: '#71717a',
+                font: { size: 9 },
+                callback: function(value) {
+                  return value >= 1000 ? `${(value/1000).toFixed(0)}k€` : `${value}€`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // RENDU GLOBAL
+    function render() {
+      // 1. Pilote
+      document.getElementById('input-heures').value = appData.heuresConduite;
+      document.getElementById('select-code').value = appData.codeStatut;
+      document.getElementById('input-target-date').value = appData.targetDate || "2027-01-15";
+
+      const pilotePct = Math.min(100, Math.round((appData.heuresConduite / appData.heuresTarget) * 100 * 10) / 10);
+      document.getElementById('kpi-pilote').textContent = `${appData.heuresConduite} / ${appData.heuresTarget} h`;
+      document.getElementById('kpi-pilote-pct').textContent = `${pilotePct}% complété`;
+      document.getElementById('hours-display').textContent = `${appData.heuresConduite}h / ${appData.heuresTarget}h`;
+      document.getElementById('hours-pct-text').textContent = `${pilotePct}%`;
+      document.getElementById('hours-bar').style.width = `${pilotePct}%`;
+
+      const today = new Date();
+      const targetD = new Date(appData.targetDate || "2027-01-15");
+      const diffDays = Math.ceil((targetD - today) / (1000 * 60 * 60 * 24));
+      const hoursRemaining = Math.max(0, appData.heuresTarget - appData.heuresConduite);
+      const weeksRemaining = Math.max(1, Math.ceil(diffDays / 7));
+      const weeklyPace = (hoursRemaining / weeksRemaining).toFixed(1);
+
+      document.getElementById('target-countdown').textContent = diffDays > 0 ? `J-${diffDays} restants` : "Date atteinte";
+      document.getElementById('target-pace').textContent = `Rythme : ${weeklyPace}h/semaine`;
+
+      // 2. Sentinelle
+      document.getElementById('input-cash-2026').value = appData.cash2026;
+      document.getElementById('input-pea-2026').value = appData.pea2026;
+      document.getElementById('input-crypto-2026').value = appData.crypto2026;
+      document.getElementById('input-monthly-expenses').value = appData.monthlyExpenses || 1200;
+
+      const totalPatrimoine = (appData.cash2026 || 0) + (appData.pea2026 || 0) + (appData.crypto2026 || 0);
+      document.getElementById('total-patrimoine-display').textContent = `${totalPatrimoine.toLocaleString('fr-FR')} €`;
+      document.getElementById('total-2026-detail').textContent = `${(appData.cash2026 || 0).toLocaleString('fr-FR')} € Cash`;
+
+      const cashCurrent = appData.cash2026 || 0;
+      const cashPct = Math.min(100, Math.round((cashCurrent / appData.coussinCashTarget) * 100 * 10) / 10);
+      document.getElementById('kpi-cash').textContent = `${cashCurrent.toLocaleString('fr-FR')} € / 12k €`;
+      document.getElementById('cash-pct-text').textContent = `${cashPct}% (${cashCurrent.toLocaleString('fr-FR')} / 12 000 €)`;
+      document.getElementById('cash-bar').style.width = `${cashPct}%`;
+
+      // Runaway
+      const expenses = appData.monthlyExpenses || 1200;
+      const runawayMonths = expenses > 0 ? (cashCurrent / expenses).toFixed(1) : 0;
+      document.getElementById('runaway-display').textContent = `${runawayMonths} mois de réserve`;
+
+      // Projection Coussin 12k (à raison de 750 €/mois)
+      const cashGap = Math.max(0, appData.coussinCashTarget - cashCurrent);
+      const monthsNeeded = Math.ceil(cashGap / 750);
+      const startDate = new Date(2027, 0, 1);
+      startDate.setMonth(startDate.getMonth() + monthsNeeded);
+      const estMonthStr = startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      document.getElementById('sentinelle-projection').textContent = cashGap === 0 ? "12 000 € Déjà Atteints ✓" : `${estMonthStr} (${monthsNeeded} mois de flux)`;
+      document.getElementById('kpi-cash-target-month').textContent = cashGap === 0 ? "Coussin scellé" : `Cible : ${estMonthStr}`;
+
+      // Injections History
+      const dcaHistory = appData.dcaInjections || [];
+      document.getElementById('dca-history-count').textContent = `${dcaHistory.length} injection(s)`;
+      const dcaContainer = document.getElementById('dca-history-list');
+      if (dcaHistory.length === 0) {
+        dcaContainer.innerHTML = `<p class="text-zinc-600 italic">Aucune injection enregistrée.</p>`;
+      } else {
+        dcaContainer.innerHTML = dcaHistory.map(inj => `
+          <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 px-2 py-1 rounded">
+            <span class="font-mono text-zinc-400">${inj.date}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-400 font-mono font-semibold">+${inj.amount} €</span>
+              <button onclick="deleteDcaInjection(${inj.id})" class="text-zinc-500 hover:text-rose-400"><i data-lucide="x" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 3. Corps & Combat
+      const currentWorkouts = appData.currentWorkouts || [];
+      document.getElementById('kpi-workout').textContent = `${currentWorkouts.length} / 5 SÉANCES`;
+
+      const cwContainer = document.getElementById('current-week-workouts');
+      if (currentWorkouts.length === 0) {
+        cwContainer.innerHTML = `<span class="text-zinc-600 text-xs italic">Aucune séance validée cette semaine.</span>`;
+      } else {
+        cwContainer.innerHTML = currentWorkouts.map(w => `
+          <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-amber-950/40 border border-amber-800/60 text-amber-300 text-[11px] font-mono">
+            ${w.type}
+            <button onclick="removeCurrentWorkout(${w.id})" class="text-amber-500 hover:text-rose-400">×</button>
+          </span>
+        `).join('');
+      }
+
+      let streak = 0;
+      for (let hist of (appData.workoutHistory || [])) {
+        if (hist.count >= 4) streak++;
+        else break;
+      }
+      document.getElementById('kpi-streak').textContent = `Série active : ${streak} sem.`;
+      document.getElementById('streak-display').textContent = `Série : ${streak} semaine(s) à 4+`;
+
+      const historyList = document.getElementById('workout-history');
+      if (!appData.workoutHistory || appData.workoutHistory.length === 0) {
+        historyList.innerHTML = `<p class="text-zinc-600 italic">Aucune semaine archivée.</p>`;
+      } else {
+        historyList.innerHTML = appData.workoutHistory.map(item => `
+          <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 px-2 py-1 rounded text-[11px]">
+            <span class="font-mono text-zinc-300">Semaine ${item.week} (${item.year})</span>
+            <div class="flex items-center gap-2">
+              <span class="px-1.5 py-0.5 rounded font-mono font-bold ${item.count >= 4 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">
+                ${item.count}/5 séances
+              </span>
+              <button onclick="deleteHistoryItem(${item.id})" class="text-zinc-500 hover:text-rose-400"><i data-lucide="x" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 4. Tawakul
+      document.getElementById('select-tawakul').value = appData.tawakulPhase;
+      document.getElementById('kpi-tawakul').textContent = appData.tawakulPhase.toUpperCase();
+
+      // 5. Actions prioritaires
+      const completedCount = appData.actions.filter(a => a.done).length;
+      document.getElementById('actions-counter').textContent = `${completedCount}/${appData.actions.length} terminées`;
+
+      const actionsContainer = document.getElementById('weekly-actions');
+      if (appData.actions.length === 0) {
+        actionsContainer.innerHTML = `<p class="col-span-full text-xs text-zinc-500 italic py-2">Aucun objectif actif.</p>`;
+      } else {
+        actionsContainer.innerHTML = appData.actions.map(act => `
+          <div onclick="toggleAction(${act.id})" class="cursor-pointer p-3 rounded-lg border transition group flex items-start justify-between gap-2 ${act.done ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 text-zinc-200'}">
+            <div class="flex items-start gap-2.5">
+              <div class="mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${act.done ? 'bg-emerald-500 border-emerald-500 text-black' : 'border-zinc-700'}">
+                ${act.done ? '<i data-lucide="check" class="w-3 h-3 stroke-[3]"></i>' : ''}
+              </div>
+              <span class="text-xs leading-relaxed ${act.done ? 'line-through text-zinc-500' : ''}">${act.text}</span>
+            </div>
+            <button onclick="deleteAction(${act.id}, event)" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 transition p-0.5">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      if (appData.dailyQuote && appData.dailyQuote.text) {
+        document.getElementById('daily-quote').textContent = appData.dailyQuote.text;
+      }
+
+      lucide.createIcons();
+      renderChart();
+    }
+
+    render();
+    fetchDailyQuote();
+    fetchPrayerTimes();
+  </script>
+</body>
+</html>
