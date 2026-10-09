@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -101,7 +103,7 @@
 
       <div class="bg-surface-900 border border-zinc-800/80 p-4 rounded-xl">
         <div class="flex justify-between items-center text-zinc-400 text-xs font-medium mb-1">
-          <span>COUSSIN CASH (2027)</span>
+          <span>SENTINELLE (CASH 12K)</span>
           <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
         </div>
         <div class="text-2xl font-bold tracking-tight text-white" id="kpi-cash">0 € / 12k €</div>
@@ -122,7 +124,7 @@
           <span>TAWAKUL</span>
           <i data-lucide="moon" class="w-4 h-4 text-purple-400"></i>
         </div>
-        <div class="text-2xl font-bold tracking-tight text-white" id="kpi-tawakul">PHASE 1</div>
+        <div class="text-xl font-bold tracking-tight text-white" id="kpi-tawakul">PHASE 1</div>
         <div class="text-xs text-purple-400 mt-1 font-mono" id="kpi-next-prayer">Prochaine prière : ...</div>
       </div>
     </section>
@@ -146,7 +148,7 @@
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" id="weekly-actions"></div>
     </section>
 
-    <!-- GRILLE DES 4 PILIERS -->
+    <!-- GRILLE DES 4 PILIERS INTERACTIFS -->
     <section class="grid md:grid-cols-2 gap-6">
 
       <!-- PILIER 1 : PILOTE -->
@@ -196,57 +198,151 @@
         </div>
       </div>
 
-      <!-- PILIER 2 : SENTINELLE -->
-      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
+      <!-- PILIER 2 : SENTINELLE CLARIFIÉ & STRUCTURÉ -->
+      <div class="bg-surface-900 border border-zinc-800 rounded-xl p-5 space-y-5">
+        
+        <!-- En-tête Pilier -->
+        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
           <div class="flex items-center gap-2">
             <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="shield" class="w-5 h-5"></i></div>
-            <h3 class="font-bold text-white">2. Pilier Sentinelle (Finances)</h3>
+            <div>
+              <h3 class="font-bold text-white text-sm">2. Pilier Sentinelle (Bouclier Financier)</h3>
+              <p class="text-[11px] text-zinc-400">Patrimoine total consolidé & stratégie d'indépendance</p>
+            </div>
           </div>
-          <span class="text-xs font-mono text-zinc-400">Objectif Coussin : 12 000 €</span>
+          <div class="text-right">
+            <span class="text-sm font-bold font-mono text-emerald-400" id="total-patrimoine-display">0 €</span>
+            <span class="text-[10px] text-zinc-500 block">Patrimoine Net</span>
+          </div>
         </div>
 
-        <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-lg p-3 space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-zinc-400 font-semibold uppercase tracking-wider">État Réel Actuel (Fin 2026)</span>
-            <span class="text-emerald-400 font-mono" id="total-2026">0 € total</span>
+        <!-- SOUS-BLOC A : ÉTAT RÉEL ACTUEL (FIN 2026) -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span> Soldes Réels Disponibles (2026)
+            </span>
+            <span class="text-[10px] font-mono text-zinc-400" id="total-2026-detail">0 € Cash</span>
           </div>
+
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[10px] text-zinc-500 block mb-0.5">Cash (€)</label>
-              <input type="number" id="input-cash-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs focus:border-emerald-500 outline-none" onchange="updateSentinelle()" />
+              <label class="text-[10px] text-zinc-400 block mb-1">Cash Disponible (€)</label>
+              <input type="number" id="input-cash-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-sky-500 outline-none font-mono" onchange="updateSentinelle()" />
             </div>
             <div>
-              <label class="text-[10px] text-zinc-500 block mb-0.5">PEA (€)</label>
-              <input type="number" id="input-pea-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs focus:border-emerald-500 outline-none" onchange="updateSentinelle()" />
+              <label class="text-[10px] text-zinc-400 block mb-1">PEA Investi (€)</label>
+              <input type="number" id="input-pea-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-emerald-500 outline-none font-mono" onchange="updateSentinelle()" />
             </div>
             <div>
-              <label class="text-[10px] text-zinc-500 block mb-0.5">Crypto (€)</label>
-              <input type="number" id="input-crypto-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs focus:border-emerald-500 outline-none" onchange="updateSentinelle()" />
+              <label class="text-[10px] text-zinc-400 block mb-1">Portefeuille Crypto (€)</label>
+              <input type="number" id="input-crypto-2026" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-zinc-900 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-zinc-400">Dépenses/mois :</span>
+              <input type="number" id="input-monthly-expenses" class="w-20 bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-xs text-zinc-200 outline-none font-mono" onchange="updateSentinelle()" />
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-zinc-400">Runaway : </span>
+              <span id="runaway-display" class="font-mono text-sky-400 font-bold">0 mois</span>
             </div>
           </div>
         </div>
 
-        <div class="space-y-2">
-          <div class="flex justify-between text-xs text-zinc-400">
-            <span>Bouclier Coussin Cash Cible (12 000 €)</span>
-            <span id="cash-pct-text">0%</span>
+        <!-- SOUS-BLOC B : BOUCLIER DE SÉCURITÉ (COUSSIN CASH 12K €) -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Bouclier d'Urgence (Coussin Cash)
+            </span>
+            <span id="cash-pct-text" class="font-mono text-emerald-400 font-bold">0% (0 / 12 000 €)</span>
           </div>
-          <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-            <div id="cash-bar" class="bg-emerald-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+          
+          <div class="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden">
+            <div id="cash-bar" class="bg-emerald-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
           </div>
-          <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-            <div>
-              <label class="text-[10px] text-zinc-400 block mb-0.5">Montant alloué au Coussin (€)</label>
-              <input type="number" id="input-cash-target-current" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs focus:border-emerald-500 outline-none font-mono" onchange="updateSentinelle()" />
-            </div>
-            <div class="bg-zinc-950 border border-zinc-800/80 rounded-lg p-2 flex flex-col justify-center">
-              <span class="text-[10px] text-zinc-500 uppercase tracking-wider">Mois d'atteinte estimé</span>
-              <span id="sentinelle-projection" class="text-xs font-mono text-emerald-400 font-bold">Janvier 2027</span>
-            </div>
+
+          <div class="flex justify-between items-center text-[11px] text-zinc-400 pt-1">
+            <span>Projection 12 000 € scellé :</span>
+            <span id="sentinelle-projection" class="font-mono text-emerald-400 font-bold">Calcul...</span>
           </div>
-          <p class="text-[11px] text-zinc-500">Flux dès Janv. 2027 : 1 500 €/m (750 € Coussin Cash + 600 € PEA + 150 € Crypto).</p>
         </div>
+
+        <!-- SOUS-BLOC C : MOTEUR DCA ACTIF DÈS JANVIER 2027 -->
+        <div class="bg-zinc-950/70 border border-zinc-850 rounded-xl p-3.5 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-xs font-semibold text-zinc-300 block">Moteur d'Injection DCA (Dès Janv. 2027)</span>
+              <span class="text-[10px] text-zinc-500">Cible : 1 500 € / mois (750 € Cash / 600 € PEA / 150 € Crypto)</span>
+            </div>
+            <button onclick="injectMonthlyDCA()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-lg shadow-emerald-950/50">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Injecter 1 500 €
+            </button>
+          </div>
+
+          <!-- Barre de répartition cible -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-mono">
+              <span class="text-sky-400">50% Cash (750€)</span>
+              <span class="text-emerald-400">40% PEA ETF (600€)</span>
+              <span class="text-amber-400">10% Crypto (150€)</span>
+            </div>
+            <div class="w-full h-1.5 flex rounded-full overflow-hidden bg-zinc-900">
+              <div class="bg-sky-500 w-1/2"></div>
+              <div class="bg-emerald-500 w-[40%]"></div>
+              <div class="bg-amber-500 w-[10%]"></div>
+            </div>
+          </div>
+
+          <!-- Journal des injections -->
+          <div class="border-t border-zinc-900 pt-2 space-y-1.5">
+            <div class="flex justify-between items-center text-[11px] text-zinc-400 font-semibold">
+              <span>Journal des Versements</span>
+              <span class="text-zinc-500 font-mono text-[10px]" id="dca-history-count">0 injection(s)</span>
+            </div>
+            <div id="dca-history-list" class="space-y-1 max-h-20 overflow-y-auto text-[11px] pr-1"></div>
+          </div>
+        </div>
+
+        <!-- SOUS-BLOC D : GRAPHIQUE INTERACTIF DE CAPITALISATION -->
+        <div class="bg-zinc-950/90 border border-zinc-800 rounded-xl p-3.5 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i> Trajectoire & Intérêts Composés
+              </span>
+              <span class="text-[10px] text-zinc-400">Projection sur 36 mois avec réinvestissement passif</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <button onclick="setChartMode('all')" id="chart-btn-all" class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono">Global</button>
+              <button onclick="setChartMode('cash')" id="chart-btn-cash" class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono">Cash</button>
+              <button onclick="setChartMode('invest')" id="chart-btn-invest" class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono">PEA/Crypto</button>
+            </div>
+          </div>
+
+          <div class="w-full h-48 sm:h-56 relative">
+            <canvas id="patrimoineChart"></canvas>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-900 text-center font-mono">
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+12</span>
+              <span id="proj-12" class="text-xs text-white font-bold">0 €</span>
+            </div>
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+24</span>
+              <span id="proj-24" class="text-xs text-white font-bold">0 €</span>
+            </div>
+            <div class="bg-zinc-900/60 p-1.5 rounded">
+              <span class="text-[9px] text-zinc-500 block">Cap M+36</span>
+              <span id="proj-36" class="text-xs text-emerald-400 font-bold">0 €</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- PILIER 3 : CORPS & COMBAT -->
@@ -337,11 +433,10 @@
     </section>
   </main>
 
-  <!-- MODAL GUIDE DE LA PRIÈRE : TEXTES INTÉGRAUX VISIBLES DIRECTEMENT -->
+  <!-- MODAL GUIDE DE LA PRIÈRE -->
   <div id="prayer-guide-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
     <div class="bg-surface-900 border border-zinc-800 max-w-4xl w-full rounded-2xl p-4 sm:p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto text-zinc-200">
       
-      <!-- En-tête -->
       <div class="flex justify-between items-center border-b border-zinc-800 pb-4 sticky top-0 bg-surface-900 z-10">
         <div>
           <h3 class="text-lg font-bold text-white flex items-center gap-2">
@@ -405,18 +500,15 @@
         </div>
       </div>
 
-      <!-- 2. Formules rituelles indispensables -->
+      <!-- 2. Formules Rituelles -->
       <div class="space-y-3">
         <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
           <i data-lucide="layers" class="w-4 h-4"></i> 2. Formules Rituelles durant la Rak'at
         </h4>
         <div class="space-y-2.5 text-xs">
-          
           <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
             <span class="font-bold text-white">Takbir d'ouverture (Debout face à la Qibla)</span>
-            <div class="flex justify-between items-center text-sm font-arabic text-emerald-400">
-              <span>اللَّهُ أَكْبَرُ</span>
-            </div>
+            <p class="text-right text-base text-emerald-400 font-arabic">اللَّهُ أَكْبَرُ</p>
             <p class="font-mono text-purple-300">« Allâhu Akbar »</p>
             <p class="text-zinc-400 text-[11px]">« Allah est le plus Grand. »</p>
           </div>
@@ -424,7 +516,7 @@
           <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
             <span class="font-bold text-white">Ruku' (Inclinaison - dos droit, mains sur les genoux)</span>
             <p class="text-right text-base text-emerald-400 font-arabic">سُبْحَانَ رَبِّيَ الْعَظِيمِ</p>
-            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-'Adhîm » <span class="text-zinc-500 font-sans">(à dire 3 fois)</span></p>
+            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-'Adhîm » <span class="text-zinc-500 font-sans">(3 fois)</span></p>
             <p class="text-zinc-400 text-[11px]">« Gloire à mon Seigneur le Très Grand. »</p>
           </div>
 
@@ -436,14 +528,14 @@
           </div>
 
           <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
-            <span class="font-bold text-white">Sujud (Prosternation - front, nez, paumes, genoux et orteils au sol)</span>
+            <span class="font-bold text-white">Sujud (Prosternation au sol)</span>
             <p class="text-right text-base text-emerald-400 font-arabic">سُبْحَانَ رَبِّيَ الأَعْلَى</p>
-            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-A'lâ » <span class="text-zinc-500 font-sans">(à dire 3 fois)</span></p>
+            <p class="font-mono text-purple-300">« Subhâna Rabbiyal-A'lâ » <span class="text-zinc-500 font-sans">(3 fois)</span></p>
             <p class="text-zinc-400 text-[11px]">« Gloire à mon Seigneur le Très-Haut. »</p>
           </div>
 
           <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
-            <span class="font-bold text-white">Assise entre les deux prosternations</span>
+            <span class="font-bold text-white">Assise entre les prosternations</span>
             <p class="text-right text-base text-emerald-400 font-arabic">رَبِّ اغْفِرْ لِي ، رَبِّ اغْفِرْ لِي</p>
             <p class="font-mono text-purple-300">« Rabbi-ghfir lî, Rabbi-ghfir lî »</p>
             <p class="text-zinc-400 text-[11px]">« Seigneur pardonne-moi, Seigneur pardonne-moi. »</p>
@@ -457,12 +549,8 @@
             <p class="font-mono text-purple-300 text-[11px] leading-relaxed">
               « At-tahiyyâtu lillâhi was-salawâtu wat-tayyibât. As-salâmu 'alayka ayyuhan-nabiyyu wa rahmatu-Llâhi wa barakâtuh. As-salâmu 'alaynâ wa 'alâ 'ibâdi-Llâhis-sâlihîn. Ash-hadu allâ ilâha illâ-Llâh, wa ash-hadu anna Muhammadan 'abduhû wa rasûluh. »
             </p>
-            <p class="text-zinc-400 text-[11px]">
-              « Les salutations, les prières et les œuvres pures sont à Allah. Paix sur toi, ô Prophète, ainsi que la miséricorde d'Allah et Ses bénédictions. Paix sur nous et sur les serviteurs vertueux d'Allah. J'atteste qu'il n'y a de divinité digne d'adoration qu'Allah, et j'atteste que Muhammad est Son serviteur et Son messager. »
-            </p>
-
             <div class="border-t border-zinc-850 pt-2 mt-2 space-y-1">
-              <span class="text-purple-300 font-bold block text-[11px]">Prière Ibrahimiya (Ajoutée à la toute dernière assise) :</span>
+              <span class="text-purple-300 font-bold block text-[11px]">Salât Ibrâhîmiyyah (Dernière unité) :</span>
               <p class="text-right text-sm leading-relaxed text-emerald-400 font-arabic">
                 اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ
               </p>
@@ -475,182 +563,80 @@
           <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-1">
             <span class="font-bold text-white">Salutations finales (Taslîm)</span>
             <p class="text-right text-base text-emerald-400 font-arabic">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ</p>
-            <p class="font-mono text-purple-300">« As-salâmu 'alaykum wa rahmatu-Llâh » (à droite puis à gauche)</p>
+            <p class="font-mono text-purple-300">« As-salâmu 'alaykum wa rahmatu-Llâh »</p>
             <p class="text-zinc-400 text-[11px]">« Que la paix et la miséricorde d'Allah soient sur vous. »</p>
           </div>
-
         </div>
       </div>
 
-      <!-- 3. Récitation des Sourates complètes -->
+      <!-- 3. Récitation des Sourates -->
       <div class="space-y-4">
         <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-          <i data-lucide="bookmark" class="w-4 h-4"></i> 3. Les Sourates à Réciter (Texte, Phonétique & Sens)
+          <i data-lucide="bookmark" class="w-4 h-4"></i> 3. Les Sourates à Réciter
         </h4>
 
-        <!-- SOURATE 1 : AL-FATIHA -->
+        <!-- AL-FATIHA -->
         <div class="p-4 bg-zinc-950 border border-purple-900/60 rounded-xl space-y-3">
           <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
             <div>
               <h5 class="font-bold text-white text-sm">Sourate 1 : Al-Fatiha (سُورَةُ الفَاتِحَةِ)</h5>
-              <span class="text-[11px] text-zinc-400">L'Ouverture — Obligatoire à chaque unité de prière</span>
+              <span class="text-[11px] text-zinc-400">L'Ouverture — Obligatoire à chaque unité</span>
             </div>
             <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-400 text-xs font-mono border border-purple-800">7 Versets</span>
           </div>
-
           <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ (١)</p>
-              <p class="font-mono text-purple-300 mt-1">1. Bismi-Llâhir-Rahmânir-Rahîm</p>
-              <p class="text-zinc-400 text-[11px]">Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (٢)</p>
-              <p class="font-mono text-purple-300 mt-1">2. Al-hamdu lillâhi Rabbil-'âlamîn</p>
-              <p class="text-zinc-400 text-[11px]">Louange à Allah, Seigneur de l'univers.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">الرَّحْمَٰنِ الرَّحِيمِ (٣)</p>
-              <p class="font-mono text-purple-300 mt-1">3. Ar-Rahmânir-Rahîm</p>
-              <p class="text-zinc-400 text-[11px]">Le Tout Miséricordieux, le Très Miséricordieux.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">مَالِكِ يَوْمِ الدِّينِ (٤)</p>
-              <p class="font-mono text-purple-300 mt-1">4. Mâliki yawmid-dîn</p>
-              <p class="text-zinc-400 text-[11px]">Maître du Jour du Jugement.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (٥)</p>
-              <p class="font-mono text-purple-300 mt-1">5. Iyyâka na'budu wa iyyâka nasta'în</p>
-              <p class="text-zinc-400 text-[11px]">C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons le secours.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (٦)</p>
-              <p class="font-mono text-purple-300 mt-1">6. Ihdinas-sirâtal-mustaqîm</p>
-              <p class="text-zinc-400 text-[11px]">Guide-nous sur le droit chemin,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (٧)</p>
-              <p class="font-mono text-purple-300 mt-1">7. Sirâtal-ladhîna an'amta 'alayhim, ghayril-maghdûbi 'alayhim wa lad-dâllîn</p>
-              <p class="text-zinc-400 text-[11px]">Le chemin de ceux que Tu as comblés de faveurs, non pas de ceux qui ont encouru Ta colère, ni des égarés. (Dire : <em>Amîn</em>)</p>
-            </div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Bismi-Llâhir-Rahmânir-Rahîm</p><p class="text-zinc-400 text-[11px]">Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Al-hamdu lillâhi Rabbil-'âlamîn</p><p class="text-zinc-400 text-[11px]">Louange à Allah, Seigneur de l'univers.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الرَّحْمَٰنِ الرَّحِيمِ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Ar-Rahmânir-Rahîm</p><p class="text-zinc-400 text-[11px]">Le Tout Miséricordieux, le Très Miséricordieux.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مَالِكِ يَوْمِ الدِّينِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Mâliki yawmid-dîn</p><p class="text-zinc-400 text-[11px]">Maître du Jour du Jugement.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Iyyâka na'budu wa iyyâka nasta'în</p><p class="text-zinc-400 text-[11px]">C'est Toi [Seul] que nous adorons, et c'est Toi dont nous implorons le secours.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (٦)</p><p class="font-mono text-purple-300 mt-1">6. Ihdinas-sirâtal-mustaqîm</p><p class="text-zinc-400 text-[11px]">Guide-nous sur le droit chemin,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (٧)</p><p class="font-mono text-purple-300 mt-1">7. Sirâtal-ladhîna an'amta 'alayhim, ghayril-maghdûbi 'alayhim wa lad-dâllîn</p><p class="text-zinc-400 text-[11px]">Le chemin de ceux que Tu as comblés de faveurs... (Amîn)</p></div>
           </div>
         </div>
 
-        <!-- SOURATE 112 : AL-IKHLAS -->
+        <!-- AL-IKHLAS -->
         <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
           <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
-            <div>
-              <h5 class="font-bold text-white text-sm">Sourate 112 : Al-Ikhlas (سُورَةُ الإِخْلَاصِ)</h5>
-              <span class="text-[11px] text-zinc-400">Le Monothéisme Pur</span>
-            </div>
+            <h5 class="font-bold text-white text-sm">Sourate 112 : Al-Ikhlas (سُورَةُ الإِخْلَاصِ)</h5>
             <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">4 Versets</span>
           </div>
-
           <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">قُلْ هُوَ اللَّهُ أَحَدٌ (١)</p>
-              <p class="font-mono text-purple-300 mt-1">1. Qul Huwa-Llâhu Ahad</p>
-              <p class="text-zinc-400 text-[11px]">Dis : « Il est Allah, Unique. »</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">اللَّهُ الصَّمَدُ (٢)</p>
-              <p class="font-mono text-purple-300 mt-1">2. Allâhus-Samad</p>
-              <p class="text-zinc-400 text-[11px]">Allah, Le Seul à être imploré pour ce que nous désirons.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">لَمْ يَلِدْ وَلَمْ يُولَدْ (٣)</p>
-              <p class="font-mono text-purple-300 mt-1">3. Lam yalid wa lam yûlad</p>
-              <p class="text-zinc-400 text-[11px]">Il n'a jamais engendré, n'a pas été engendré non plus.</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ (٤)</p>
-              <p class="font-mono text-purple-300 mt-1">4. Wa lam yakun lahû kufuwan ahad</p>
-              <p class="text-zinc-400 text-[11px]">Et nul n'est égal à Lui.</p>
-            </div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ هُوَ اللَّهُ أَحَدٌ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul Huwa-Llâhu Ahad</p><p class="text-zinc-400 text-[11px]">Dis : « Il est Allah, Unique. »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">اللَّهُ الصَّمَدُ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Allâhus-Samad</p><p class="text-zinc-400 text-[11px]">Allah, Le Seul à être imploré pour ce que nous désirons.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">لَمْ يَلِدْ وَلَمْ يُولَدْ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Lam yalid wa lam yûlad</p><p class="text-zinc-400 text-[11px]">Il n'a jamais engendré, n'a pas été engendré non plus.</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Wa lam yakun lahû kufuwan ahad</p><p class="text-zinc-400 text-[11px]">Et nul n'est égal à Lui.</p></div>
           </div>
         </div>
 
-        <!-- SOURATE 113 : AL-FALAQ -->
+        <!-- AL-FALAQ -->
         <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
           <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
-            <div>
-              <h5 class="font-bold text-white text-sm">Sourate 113 : Al-Falaq (سُورَةُ الفَلَقِ)</h5>
-              <span class="text-[11px] text-zinc-400">L'Aube Naissante</span>
-            </div>
+            <h5 class="font-bold text-white text-sm">Sourate 113 : Al-Falaq (سُورَةُ الفَلَقِ)</h5>
             <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">5 Versets</span>
           </div>
-
           <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (١)</p>
-              <p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbil-falaq</p>
-              <p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur de l'aube naissante, »</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ مَا خَلَقَ (٢)</p>
-              <p class="font-mono text-purple-300 mt-1">2. Min sharri mâ khalaq</p>
-              <p class="text-zinc-400 text-[11px]">contre le mal des êtres qu'Il a créés,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ (٣)</p>
-              <p class="font-mono text-purple-300 mt-1">3. Wa min sharri ghâsiqin idhâ waqab</p>
-              <p class="text-zinc-400 text-[11px]">contre le mal de l'obscurité quand elle s'approfondit,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ (٤)</p>
-              <p class="font-mono text-purple-300 mt-1">4. Wa min sharrin-naffâthâti fîl-'uqad</p>
-              <p class="text-zinc-400 text-[11px]">contre le mal de celles qui soufflent sur les nœuds,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ (٥)</p>
-              <p class="font-mono text-purple-300 mt-1">5. Wa min sharri hâsidin idhâ hasad</p>
-              <p class="text-zinc-400 text-[11px]">et contre le mal de l'envieux quand il envie.</p>
-            </div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbil-falaq</p><p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur de l'aube naissante, »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ مَا خَلَقَ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Min sharri mâ khalaq</p><p class="text-zinc-400 text-[11px]">contre le mal des êtres qu'Il a créés,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Wa min sharri ghâsiqin idhâ waqab</p><p class="text-zinc-400 text-[11px]">contre le mal de l'obscurité quand elle s'approfondit,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Wa min sharrin-naffâthâti fîl-'uqad</p><p class="text-zinc-400 text-[11px]">contre le mal de celles qui soufflent sur les nœuds,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Wa min sharri hâsidin idhâ hasad</p><p class="text-zinc-400 text-[11px]">et contre le mal de l'envieux quand il envie.</p></div>
           </div>
         </div>
 
-        <!-- SOURATE 114 : AN-NAS -->
+        <!-- AN-NAS -->
         <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
           <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
-            <div>
-              <h5 class="font-bold text-white text-sm">Sourate 114 : An-Nas (سُورَةُ النَّاسِ)</h5>
-              <span class="text-[11px] text-zinc-400">Les Hommes</span>
-            </div>
+            <h5 class="font-bold text-white text-sm">Sourate 114 : An-Nas (سُورَةُ النَّاسِ)</h5>
             <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 text-xs font-mono border border-zinc-800">6 Versets</span>
           </div>
-
           <div class="space-y-3 divide-y divide-zinc-900 text-xs pt-1">
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ النَّاسِ (١)</p>
-              <p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbin-nâs</p>
-              <p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur des hommes, »</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">مَلِكِ النَّاسِ (٢)</p>
-              <p class="font-mono text-purple-300 mt-1">2. Malikin-nâs</p>
-              <p class="text-zinc-400 text-[11px]">Le Souverain des hommes,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">إِلَٰهِ النَّاسِ (٣)</p>
-              <p class="font-mono text-purple-300 mt-1">3. Ilâhin-nâs</p>
-              <p class="text-zinc-400 text-[11px]">Dieu des hommes,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (٤)</p>
-              <p class="font-mono text-purple-300 mt-1">4. Min sharril-waswâsil-khannâs</p>
-              <p class="text-zinc-400 text-[11px]">contre le mal du mauvais conseiller furtif,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ (٥)</p>
-              <p class="font-mono text-purple-300 mt-1">5. Al-ladhî yuwaswisu fî sudûrin-nâs</p>
-              <p class="text-zinc-400 text-[11px]">qui souffle le mal dans les poitrines des hommes,</p>
-            </div>
-            <div class="pt-2">
-              <p class="text-right text-base text-emerald-400 font-arabic">مِنَ الْجِنَّةِ وَالنَّاسِ (٦)</p>
-              <p class="font-mono text-purple-300 mt-1">6. Minal-jinnati wan-nâs</p>
-              <p class="text-zinc-400 text-[11px]">qu'il soit d'entre les djinns ou les hommes.</p>
-            </div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">قُلْ أَعُوذُ بِرَبِّ النَّاسِ (١)</p><p class="font-mono text-purple-300 mt-1">1. Qul a'ûdhu bi-Rabbin-nâs</p><p class="text-zinc-400 text-[11px]">Dis : « Je cherche protection auprès du Seigneur des hommes, »</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مَلِكِ النَّاسِ (٢)</p><p class="font-mono text-purple-300 mt-1">2. Malikin-nâs</p><p class="text-zinc-400 text-[11px]">Le Souverain des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">إِلَٰهِ النَّاسِ (٣)</p><p class="font-mono text-purple-300 mt-1">3. Ilâhin-nâs</p><p class="text-zinc-400 text-[11px]">Dieu des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (٤)</p><p class="font-mono text-purple-300 mt-1">4. Min sharril-waswâsil-khannâs</p><p class="text-zinc-400 text-[11px]">contre le mal du mauvais conseiller furtif,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ (٥)</p><p class="font-mono text-purple-300 mt-1">5. Al-ladhî yuwaswisu fî sudûrin-nâs</p><p class="text-zinc-400 text-[11px]">qui souffle le mal dans les poitrines des hommes,</p></div>
+            <div class="pt-2"><p class="text-right text-base text-emerald-400 font-arabic">مِنَ الْجِنَّةِ وَالنَّاسِ (٦)</p><p class="font-mono text-purple-300 mt-1">6. Minal-jinnati wan-nâs</p><p class="text-zinc-400 text-[11px]">qu'il soit d'entre les djinns ou les hommes.</p></div>
           </div>
         </div>
 
@@ -688,18 +674,19 @@
   </div>
 
   <script>
-    // DONNÉES PAR DÉFAUT
     const DEFAULT_DATA = {
       heuresConduite: 4,
       codeStatut: "En cours",
       heuresTarget: 30,
       targetDate: "2027-01-15",
 
+      // Pilier Sentinelle
       cash2026: 0,
       pea2026: 0,
       crypto2026: 0,
+      monthlyExpenses: 1200,
       coussinCashTarget: 12000,
-      coussinCashCurrent: 0,
+      dcaInjections: [],
 
       currentWorkouts: [],
       workoutHistory: [],
@@ -720,6 +707,8 @@
 
     let appData = JSON.parse(localStorage.getItem('exodus_data')) || DEFAULT_DATA;
     let geminiApiKey = localStorage.getItem('gemini_api_key') || "";
+    let myChart = null;
+    let chartMode = 'all'; // 'all', 'cash', 'invest'
 
     function save() {
       localStorage.setItem('exodus_data', JSON.stringify(appData));
@@ -733,7 +722,6 @@
       }
     }
 
-    // EXPORT / IMPORT JSON
     function exportData() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
       const a = document.createElement('a');
@@ -776,8 +764,55 @@
       appData.cash2026 = Number(document.getElementById('input-cash-2026').value) || 0;
       appData.pea2026 = Number(document.getElementById('input-pea-2026').value) || 0;
       appData.crypto2026 = Number(document.getElementById('input-crypto-2026').value) || 0;
-      appData.coussinCashCurrent = Number(document.getElementById('input-cash-target-current').value) || 0;
+      appData.monthlyExpenses = Number(document.getElementById('input-monthly-expenses').value) || 1200;
       save();
+    }
+
+    function injectMonthlyDCA() {
+      const dcaCash = 750;
+      const dcaPea = 600;
+      const dcaCrypto = 150;
+      const now = new Date();
+      
+      appData.cash2026 = (appData.cash2026 || 0) + dcaCash;
+      appData.pea2026 = (appData.pea2026 || 0) + dcaPea;
+      appData.crypto2026 = (appData.crypto2026 || 0) + dcaCrypto;
+
+      appData.dcaInjections = appData.dcaInjections || [];
+      appData.dcaInjections.unshift({
+        id: Date.now(),
+        date: now.toLocaleDateString('fr-FR'),
+        amount: 1500,
+        cash: dcaCash,
+        pea: dcaPea,
+        crypto: dcaCrypto
+      });
+
+      save();
+    }
+
+    function deleteDcaInjection(id) {
+      const inj = (appData.dcaInjections || []).find(i => i.id === id);
+      if (inj) {
+        appData.cash2026 = Math.max(0, (appData.cash2026 || 0) - inj.cash);
+        appData.pea2026 = Math.max(0, (appData.pea2026 || 0) - inj.pea);
+        appData.crypto2026 = Math.max(0, (appData.crypto2026 || 0) - inj.crypto);
+        appData.dcaInjections = appData.dcaInjections.filter(i => i.id !== id);
+        save();
+      }
+    }
+
+    function setChartMode(mode) {
+      chartMode = mode;
+      ['all', 'cash', 'invest'].forEach(m => {
+        const btn = document.getElementById(`chart-btn-${m}`);
+        if (m === mode) {
+          btn.className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono";
+        } else {
+          btn.className = "px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 font-mono";
+        }
+      });
+      renderChart();
     }
 
     // CORPS & COMBAT
@@ -916,7 +951,7 @@
       document.getElementById('prayer-guide-modal').classList.toggle('hidden');
     }
 
-    // CITATION DU JOUR
+    // GEMINI QUOTE
     async function fetchDailyQuote(force = false) {
       const today = new Date().toISOString().split('T')[0];
       if (!force && appData.dailyQuote && appData.dailyQuote.date === today && appData.dailyQuote.text) {
@@ -951,7 +986,162 @@
       }
     }
 
-    // RENDU
+    // RENDU DU GRAPHIQUE INTERACTIF DE CAPITALISATION
+    function renderChart() {
+      const ctx = document.getElementById('patrimoineChart');
+      if (!ctx) return;
+
+      const labels = [];
+      const cashData = [];
+      const peaData = [];
+      const cryptoData = [];
+      const totalData = [];
+
+      let currentCash = appData.cash2026 || 0;
+      let currentPea = appData.pea2026 || 0;
+      let currentCrypto = appData.crypto2026 || 0;
+
+      const rPea = 0.07 / 12; // 7% annuel
+      const rCrypto = 0.05 / 12; // 5% annuel
+
+      for (let m = 0; m <= 36; m++) {
+        labels.push(m === 0 ? "Départ" : `M+${m}`);
+        cashData.push(Math.round(currentCash));
+        peaData.push(Math.round(currentPea));
+        cryptoData.push(Math.round(currentCrypto));
+        totalData.push(Math.round(currentCash + currentPea + currentCrypto));
+
+        // Projections mensuelles
+        currentCash += 750;
+        currentPea = (currentPea * (1 + rPea)) + 600;
+        currentCrypto = (currentCrypto * (1 + rCrypto)) + 150;
+      }
+
+      // Mise à jour des cartes KPI de projection
+      document.getElementById('proj-12').textContent = `${totalData[12].toLocaleString('fr-FR')} €`;
+      document.getElementById('proj-24').textContent = `${totalData[24].toLocaleString('fr-FR')} €`;
+      document.getElementById('proj-36').textContent = `${totalData[36].toLocaleString('fr-FR')} €`;
+
+      let datasets = [];
+      if (chartMode === 'all') {
+        datasets = [
+          {
+            label: 'Patrimoine Total',
+            data: totalData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2
+          },
+          {
+            label: 'Coussin Cash',
+            data: cashData,
+            borderColor: '#38bdf8',
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.1,
+            borderWidth: 1.5
+          }
+        ];
+      } else if (chartMode === 'cash') {
+        datasets = [
+          {
+            label: 'Coussin Cash (Cible 12k€)',
+            data: cashData,
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            fill: true,
+            tension: 0.1,
+            borderWidth: 2
+          }
+        ];
+      } else if (chartMode === 'invest') {
+        datasets = [
+          {
+            label: 'PEA (ETF 7%)',
+            data: peaData,
+            borderColor: '#10b981',
+            fill: false,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Crypto (5%)',
+            data: cryptoData,
+            borderColor: '#f59e0b',
+            fill: false,
+            tension: 0.3,
+            borderWidth: 1.5
+          }
+        ];
+      }
+
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#a1a1aa',
+                font: { size: 10, family: 'monospace' }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#09090b',
+              titleColor: '#f4f4f5',
+              bodyColor: '#e4e4e7',
+              borderColor: '#27272a',
+              borderWidth: 1,
+              padding: 8,
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString('fr-FR')} €`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(39, 39, 42, 0.5)' },
+              ticks: {
+                color: '#71717a',
+                font: { size: 9 },
+                maxTicksLimit: 7
+              }
+            },
+            y: {
+              grid: { color: 'rgba(39, 39, 42, 0.5)' },
+              ticks: {
+                color: '#71717a',
+                font: { size: 9 },
+                callback: function(value) {
+                  return value >= 1000 ? `${(value/1000).toFixed(0)}k€` : `${value}€`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // RENDU GLOBAL
     function render() {
       // 1. Pilote
       document.getElementById('input-heures').value = appData.heuresConduite;
@@ -979,23 +1169,49 @@
       document.getElementById('input-cash-2026').value = appData.cash2026;
       document.getElementById('input-pea-2026').value = appData.pea2026;
       document.getElementById('input-crypto-2026').value = appData.crypto2026;
-      document.getElementById('input-cash-target-current').value = appData.coussinCashCurrent;
+      document.getElementById('input-monthly-expenses').value = appData.monthlyExpenses || 1200;
 
-      const total2026 = (appData.cash2026 || 0) + (appData.pea2026 || 0) + (appData.crypto2026 || 0);
-      document.getElementById('total-2026').textContent = `${total2026.toLocaleString('fr-FR')} € total actuel`;
+      const totalPatrimoine = (appData.cash2026 || 0) + (appData.pea2026 || 0) + (appData.crypto2026 || 0);
+      document.getElementById('total-patrimoine-display').textContent = `${totalPatrimoine.toLocaleString('fr-FR')} €`;
+      document.getElementById('total-2026-detail').textContent = `${(appData.cash2026 || 0).toLocaleString('fr-FR')} € Cash`;
 
-      const cashPct = Math.min(100, Math.round((appData.coussinCashCurrent / appData.coussinCashTarget) * 100 * 10) / 10);
-      document.getElementById('kpi-cash').textContent = `${appData.coussinCashCurrent.toLocaleString('fr-FR')} € / 12k €`;
-      document.getElementById('cash-pct-text').textContent = `${cashPct}%`;
+      const cashCurrent = appData.cash2026 || 0;
+      const cashPct = Math.min(100, Math.round((cashCurrent / appData.coussinCashTarget) * 100 * 10) / 10);
+      document.getElementById('kpi-cash').textContent = `${cashCurrent.toLocaleString('fr-FR')} € / 12k €`;
+      document.getElementById('cash-pct-text').textContent = `${cashPct}% (${cashCurrent.toLocaleString('fr-FR')} / 12 000 €)`;
       document.getElementById('cash-bar').style.width = `${cashPct}%`;
 
-      const cashGap = Math.max(0, appData.coussinCashTarget - appData.coussinCashCurrent);
+      // Runaway
+      const expenses = appData.monthlyExpenses || 1200;
+      const runawayMonths = expenses > 0 ? (cashCurrent / expenses).toFixed(1) : 0;
+      document.getElementById('runaway-display').textContent = `${runawayMonths} mois de réserve`;
+
+      // Projection Coussin 12k (à raison de 750 €/mois)
+      const cashGap = Math.max(0, appData.coussinCashTarget - cashCurrent);
       const monthsNeeded = Math.ceil(cashGap / 750);
       const startDate = new Date(2027, 0, 1);
       startDate.setMonth(startDate.getMonth() + monthsNeeded);
       const estMonthStr = startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-      document.getElementById('sentinelle-projection').textContent = cashGap === 0 ? "Atteint ✓" : estMonthStr;
+      document.getElementById('sentinelle-projection').textContent = cashGap === 0 ? "12 000 € Déjà Atteints ✓" : `${estMonthStr} (${monthsNeeded} mois de flux)`;
       document.getElementById('kpi-cash-target-month').textContent = cashGap === 0 ? "Coussin scellé" : `Cible : ${estMonthStr}`;
+
+      // Injections History
+      const dcaHistory = appData.dcaInjections || [];
+      document.getElementById('dca-history-count').textContent = `${dcaHistory.length} injection(s)`;
+      const dcaContainer = document.getElementById('dca-history-list');
+      if (dcaHistory.length === 0) {
+        dcaContainer.innerHTML = `<p class="text-zinc-600 italic">Aucune injection enregistrée.</p>`;
+      } else {
+        dcaContainer.innerHTML = dcaHistory.map(inj => `
+          <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 px-2 py-1 rounded">
+            <span class="font-mono text-zinc-400">${inj.date}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-400 font-mono font-semibold">+${inj.amount} €</span>
+              <button onclick="deleteDcaInjection(${inj.id})" class="text-zinc-500 hover:text-rose-400"><i data-lucide="x" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
 
       // 3. Corps & Combat
       const currentWorkouts = appData.currentWorkouts || [];
@@ -1070,6 +1286,7 @@
       }
 
       lucide.createIcons();
+      renderChart();
     }
 
     render();
